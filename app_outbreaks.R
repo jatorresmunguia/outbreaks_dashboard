@@ -22,20 +22,21 @@ library(httr)
 library(DT)
 library(ggiraph)
 library(broom)
+library(fontawesome)
 
 ### Datasets ###
 # https://bootswatch.com/
 
 # Unique DONs
 # Define the GitHub raw content URL
-ghurl <- "https://github.com/jatorresmunguia/DiseaseOutbreaksData/raw/main/Outbreaks.RData"
+ghurl <- "https://github.com/jatorresmunguia/disease_outbreak_news/raw/main/Last%20update/outbreaks_30092024.RData"
 
 # Load the RData file directly from the URL
 load(url(ghurl))
 
 # DONs raw
 # Define the GitHub raw content URL
-ghurl_raw <- "https://github.com/jatorresmunguia/DiseaseOutbreaksData/raw/main/DONsRaw.csv"
+ghurl_raw <- "https://github.com/jatorresmunguia/disease_outbreak_news/raw/main/Last%20update/dons_raw_30092024.csv"
 
 # Load the csv file directly from the URL
 DONsRaw <- read.csv(url(ghurl_raw))
@@ -56,40 +57,40 @@ options(prompt = "R> ", digits = 4, scipen = 999)
 shpsfort <- fortify(shpsf) 
 
 # unique levels
-Outbreaks$icd10n <- as.character(Outbreaks$icd10n)
-Outbreaks$icd10n <- str_squish(Outbreaks$icd10n)
-Outbreaks$icd10n <- as.factor(Outbreaks$icd10n)
+outbreaks$icd10n <- as.character(outbreaks$icd10n)
+outbreaks$icd10n <- str_squish(outbreaks$icd10n)
+outbreaks$icd10n <- as.factor(outbreaks$icd10n)
 
-Outbreaks$iso3 <- as.character(Outbreaks$iso3)
-Outbreaks$iso3 <- str_squish(Outbreaks$iso3)
-Outbreaks$iso3 <- as.factor(Outbreaks$iso3)
+outbreaks$iso3 <- as.character(outbreaks$iso3)
+outbreaks$iso3 <- str_squish(outbreaks$iso3)
+outbreaks$iso3 <- as.factor(outbreaks$iso3)
 
-Outbreaks$Country <- as.character(Outbreaks$Country)
-Outbreaks$Country <- str_squish(Outbreaks$Country)
-Outbreaks$Country <- as.factor(Outbreaks$Country)
+outbreaks$Country <- as.character(outbreaks$Country)
+outbreaks$Country <- str_squish(outbreaks$Country)
+outbreaks$Country <- as.factor(outbreaks$Country)
 
-Outbreaks <- Outbreaks %>%
+outbreaks <- outbreaks %>%
   mutate(iso3 = case_when(Country == "Bonaire Sint Eustatius and Saba" ~ "BES",
                           TRUE ~ iso3))
 
 rep_year <- length(na.omit(unique(shpsf$iso3)))
-rep_country <- length(1996:2023)
+rep_country <- length(1996:2024)
 
 # crear una base con todos los anos y todas las enfermedades para cada país
 data_base <- data.frame(iso3 = rep(na.omit(unique(shpsf$iso3)), times = rep_country),
-                        Year = rep(1996:2023, each = rep_year))
+                        Year = rep(1996:2024, each = rep_year))
 
 country_iso <- na.omit(unique(shpsf[, c("name", "iso3")]))
 
 data_base <- data_base %>%
   left_join(country_iso, by = "iso3")
 
-Outbreaks_sub <- Outbreaks %>% 
+outbreaks_sub <- outbreaks %>% 
   select(iso3, Year, icd10n, DONs) %>% 
   mutate(Year = as.integer(Year)) %>%
   mutate(Ones = 1)
 
-outbreaks104n <- Outbreaks_sub %>% 
+outbreaks104n <- outbreaks_sub %>% 
   cast(iso3 + Year ~ icd10n, value = "Ones", fun.aggregate = sum)
 
 data_base <- data_base %>% 
@@ -100,11 +101,15 @@ data_base <- data_base %>%
 data_base <- data_base %>% 
   mutate_at(vars(-c(Country, iso3, Year)), ~replace(., is.na(.), 0)) %>%
   mutate(`All diseases` = rowSums(select(., -c(Country, iso3, Year)))) %>%
-  pivot_longer(!c(Country, iso3, Year), names_to = "Disease", values_to = "Outbreaks")
+  pivot_longer(!c(Country, iso3, Year), names_to = "Disease", values_to = "outbreaks")
 
 ### Shiny app ###
 
 ui <- fluidPage(
+  
+  tags$head(
+    tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css")
+  ),
   
   useShinyjs(),
   
@@ -137,10 +142,22 @@ ui <- fluidPage(
             h4("Here you can find a new dataset of infectious disease outbreaks collected from the Disease Outbreak News and the Coronavirus Dashboard produced by the World Health Organization. The dataset contains information on 70 infectious diseases and 2,227 public health events that occurred from January 1996 to March 2022 in 233 countries and territories worldwide."),
             h4("This dataset is the result of collaborative work by a team of researchers from the University of Göttingen, the University of Groningen, and the University of Bordeaux."),
             h4("The project was made possible through financial support from the ENLIGHT network, the German Academic Exchange Service (DAAD), and the Federal Ministry of Education and Research (BMBF) in Germany."),
-            h4("The findings of this work have been published in Springer Nature's Scientific Data. ", 
+            h4("The findings of the first version of the dataset have been published in Springer Nature’s Scientific Data. ", 
                tags$a(href = "https://www.nature.com/articles/s41597-022-01797-2", target = "_blank", "Read the paper by clicking here!")),
-            h4("Additionally, the data, metadata, and the code to replicate this dataset are publicly available on Figshare. ", 
-               tags$a(href = "https://figshare.com/articles/dataset/A_global_dataset_of_pandemic-_and_epidemic-prone_disease_outbreaks/17207183", target = "_blank", "You can download them by clicking here!"))
+            h4("Additionally, the data, metadata, and the code to replicate the first version of this dataset are publicly available on Figshare. ", 
+               tags$a(href = "https://figshare.com/articles/dataset/A_global_dataset_of_pandemic-_and_epidemic-prone_disease_outbreaks/17207183", target = "_blank", "You can download them by clicking here!")),
+            br(),
+            h3(HTML("<strong>IMPORTANT NOTE</strong>")),
+            h4("From October 2024, this project is being updated by Dr. Juan Armando Torres Munguía. In case of questions, requests, or collaborations, you can contact me via",
+               tags$a(href = "https://github.com/jatorresmunguia", target = "_blank", "GitHub, "),  
+               tags$a(href = "https://x.com/jtorresmunguia", target = "_blank", "X, "), 
+               "or", 
+               tags$a(href = "https://juan-torresmunguia.netlify.app/contact/", target = "_blank", "here.")),
+            h4("The last version of the dataset was updated on 30/09/2024 and contains information on 3050 outbreaks, associated with 85 infectious diseases that occurred from 01/01/1996 to 30/09/2024 in 236 countries and territories worldwide."),
+            h4("The last version of the dataset can be found here: ", 
+               tags$a(href = "https://github.com/jatorresmunguia/disease_outbreak_news", 
+                      target = "_blank", 
+                      icon("github", class = "fa")))
           )
         )
       )
@@ -150,6 +167,22 @@ ui <- fluidPage(
     tabPanel(
       
       title = h4("Visualize the data", style = "font-size: 18px;"),
+    
+      fluidRow(
+        
+        # Download button with icon
+        column(
+          width = 12,
+          style = "text-align: right;", 
+          tags$a(
+            href = "https://github.com/jatorresmunguia/disease_outbreak_news",
+            target = "_blank",  
+            download = NA,  
+            style = "font-size: 36px;",  
+            icon("github", class = "fa") 
+          )
+        )
+      ),
       
       fluidRow(
         
@@ -161,8 +194,8 @@ ui <- fluidPage(
             inputId = "years_range",
             label = "Select range of years",
             min = 1996,
-            max = 2023,
-            value = c(1996, 2023),
+            max = 2024,
+            value = c(1996, 2024),
             step = 1,
             sep = "",
             width = "100%",
@@ -194,13 +227,28 @@ ui <- fluidPage(
           width = 8, 
           style = "text-align: center;",
           h4(
-            HTML("<strong>Map of outbreaks in the world:</strong>"),
+            HTML("<strong>Number of outbreaks in the world:</strong>"),
             textOutput("map_title"),
             style = "font-size: 20px;"
-          ),          
-          girafeOutput(
-            "diseaseMap_ggplot", width = "100%", height = "400px"  
+          ),
+          
+          tags$div(
+            style = "font-size: 18px; margin-top: 10px;",  
+            tags$span(
+              "Min: ", 
+              textOutput("min_outbreaks", inline = TRUE),
+              style = "color: #56B4E9; font-weight: bold;"
+            ),
+            tags$span(
+              " - "
+              ),
+            tags$span(
+              "Max: ", 
+              textOutput("max_outbreaks", inline = TRUE),
+              style = "color: #D55E00; font-weight: bold;"
+            )
           )
+          
         ),
         
         column(
@@ -210,7 +258,24 @@ ui <- fluidPage(
             HTML("<strong>Top 10 countries with the highest number of outbreaks:</strong>"),
             textOutput("bar_title"),
             style = "font-size: 20px;"
-          ), 
+          )
+        ) 
+        
+      ), 
+      
+      fluidRow(
+        
+        column(
+          width = 8, 
+          style = "text-align: center;",
+          girafeOutput(
+            "diseaseMap_ggplot", width = "100%", height = "400px"  
+          )
+        ),
+        
+        column(
+          width = 4, 
+          style = "text-align: center;",
           girafeOutput(
             "bar_plot", height = "400px"
           )
@@ -229,7 +294,7 @@ ui <- fluidPage(
           # Download button with icon
           tags$a(
             
-            href = "https://figshare.com/articles/dataset/A_global_dataset_of_pandemic-_and_epidemic-prone_disease_outbreaks/17207183",
+            href = "https://github.com/jatorresmunguia/disease_outbreak_news",
             target = "_blank",  
             download = NA,  
             class = "btn",
@@ -298,9 +363,9 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   
-  total_outbreaks <- reactiveVal(nrow(Outbreaks))
-  total_countries <- reactiveVal(length(unique(Outbreaks$iso3)))
-  total_diseases <- reactiveVal(length(unique(Outbreaks$icd104n)))
+  total_outbreaks <- reactiveVal(nrow(outbreaks))
+  total_countries <- reactiveVal(length(unique(outbreaks$iso3)))
+  total_diseases <- reactiveVal(length(unique(outbreaks$icd104n)))
   
   ## Tab 2
   output$map_title <- renderText({
@@ -338,7 +403,7 @@ server <- function(input, output, session) {
         filter(between(Year, left = input$years_range[1], right = input$years_range[2])) %>%
         filter(Disease %in% input$disease) %>%
         group_by(Country, iso3) %>%
-        summarise(Outbreaks = sum(Outbreaks)) 
+        summarise(outbreaks = sum(outbreaks)) 
       
     }
     
@@ -358,10 +423,18 @@ server <- function(input, output, session) {
         filter(between(Year, left = input$years_range[1], right = input$years_range[2])) %>%
         filter(Disease %in% input$disease) %>%
         group_by(Country, iso3) %>%
-        summarise(Outbreaks = sum(Outbreaks)) %>%
+        summarise(outbreaks = sum(outbreaks)) %>%
         right_join(shpsf, by = "iso3") %>%
         st_as_sf()  
     }
+  })
+  
+  output$min_outbreaks <- renderText({
+    min(filtered_data_gg()$outbreaks, na.rm = TRUE)
+  })
+  
+  output$max_outbreaks <- renderText({
+    max(filtered_data_gg()$outbreaks, na.rm = TRUE)
   })
   
   shpdatacoords <- reactive({
@@ -383,8 +456,8 @@ server <- function(input, output, session) {
     girafe_map <- ggplot(data = filtered_data_gg()) +
       geom_sf_interactive(
         aes(
-          fill = Outbreaks,
-          tooltip = c(paste(Country, "<br>", Outbreaks, " outbreaks")),
+          fill = outbreaks,
+          tooltip = c(paste(Country, "<br>", outbreaks, " outbreaks")),
           data_id = iso3
         )
       ) +
@@ -407,7 +480,7 @@ server <- function(input, output, session) {
           keyheight = .5
         )
       ) +
-      labs(fill = "Outbreaks") +
+      labs(fill = "outbreaks") +
       theme_base() +
       theme(legend.position = "bottom")  # Add legend to the bottom
     
@@ -428,7 +501,7 @@ server <- function(input, output, session) {
     
     filtered_data() %>% 
       as_tibble() %>%
-      arrange(desc(Outbreaks)) %>%
+      arrange(desc(outbreaks)) %>%
       slice(1:10)
     
   })
@@ -438,15 +511,15 @@ server <- function(input, output, session) {
     girafe_bar <- ggplot(
       data = filtered_data_top10(),
       aes(
-        x = reorder(iso3, -Outbreaks),
-        y = Outbreaks,
-        fill = Outbreaks,
+        x = reorder(iso3, -outbreaks),
+        y = outbreaks,
+        fill = outbreaks,
         click = I(paste("highlightCountry('", iso3, "')"))
       )
     ) +
       geom_bar_interactive(
         aes(
-          tooltip = c(paste(Country, "<br>", Outbreaks, " outbreaks")),
+          tooltip = c(paste(Country, "<br>", outbreaks, " outbreaks")),
           data_id = iso3
         ),
         stat = "identity",
@@ -525,13 +598,13 @@ server <- function(input, output, session) {
     
     if(input$years_range[1] == input$years_range[2]) {
       # If only one year is selected, filter by that year
-      Outbreaks %>%
+      outbreaks %>%
         mutate(Year = as.integer(Year)) %>%
         filter(Year == input$years_range[1]) 
       
     } else {
       # If multiple years are selected, calculate the sum by country and disease
-      Outbreaks %>%
+      outbreaks %>%
         mutate(Year = as.integer(Year)) %>%
         filter(between(Year, left = input$years_range[1], right = input$years_range[2])) 
       
