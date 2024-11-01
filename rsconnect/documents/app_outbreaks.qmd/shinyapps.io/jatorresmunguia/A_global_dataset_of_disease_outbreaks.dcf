@@ -1,11 +1,11 @@
 name: A_global_dataset_of_disease_outbreaks
-title: A_global_dataset_of_disease_outbreaks
+title: app_outbreaks
 username: jatorresmunguia
 account: jatorresmunguia
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 13100728
-bundleId: 9260107
+bundleId: 9304081
 url: https://jatorresmunguia.shinyapps.io/A_global_dataset_of_disease_outbreaks/
 version: 1
 quarto_version: 1.4.549
