@@ -12,4 +12,4 @@ quarto_version: 1.4.549
 quarto_engines: knitr
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: app_outbreaks.R
+ignoredFiles: app_outbreaks.qmd
