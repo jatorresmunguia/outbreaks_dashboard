@@ -1,5 +1,5 @@
 ---
-title: "Pandemic- and epidemic-prone disease outbreaks in the world: 1996-2024"
+title: "Pandemic- and epidemic-prone disease outbreaks in the world: 1996-2025"
 format:
   dashboard:
     theme: lux
@@ -148,7 +148,7 @@ rm(shpsf_unique, date_obj, date_string, file_name, last_file, rdata_file, url_ap
 
 # For input Year
 min_Year <- min(outbreaks$Year)
-max_Year <- max(outbreaks$Year)
+max_Year <- 2025# max(outbreaks$Year)
 
 ```
 
@@ -199,7 +199,7 @@ div(
   
   # Footer note at the bottom
   div(
-    HTML('&#169; 2024 <a href="https://jatorresmunguia.github.io/disease-outbreaks-data.github.io/" target="_blank">Disease Outbreaks Data project</a>. 
+    HTML('&#169; 2026 <a href="https://jatorresmunguia.github.io/disease-outbreaks-data.github.io/" target="_blank">Disease Outbreaks Data project</a>. 
           Website built with <a href="https://www.r-project.org/" target="_blank">R</a>, 
           <a href="https://www.shinyapps.io/" target="_blank">Shiny</a>, 
           and <a href="https://quarto.org/" target="_blank">Quarto</a> by Juan Armando Torres Munguía, PhD.'),
