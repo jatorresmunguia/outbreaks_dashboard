@@ -5,8 +5,6 @@ format:
     theme: lux
     scrolling: false 
     nav-buttons:
-      - icon: twitter-x
-        href: https://x.com/OutbreaksData
       - icon: github
         href: https://github.com/jatorresmunguia/disease_outbreak_news
 server: shiny
