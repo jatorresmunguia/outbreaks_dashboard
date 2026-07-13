@@ -114,6 +114,9 @@ last_file <- fromJSON(content(GET(url_api), as = "text"))$name[grepl(fromJSON(co
 
 rdata_file <- last_file[grepl(".csv$", last_file)]
 file_name <- basename(rdata_file)
+last_version <- read.csv(paste0("https://raw.githubusercontent.com/jatorresmunguia/disease_outbreak_news/refs/heads/main/Last%20update", "/", rdata_file),
+                         header = TRUE)
+
 date_string <- sub(".*_(\\d{2})(\\d{2})(\\d{4}).*", "\\1-\\2-\\3", file_name)
 date_obj <- dmy(date_string)
 
@@ -146,7 +149,7 @@ rm(shpsf_unique, date_obj, date_string, file_name, last_file, rdata_file, url_ap
 
 # For input Year
 min_Year <- min(outbreaks$Year)
-max_Year <- 2025# max(outbreaks$Year)
+max_Year <- 2025
 
 ```
 
@@ -534,11 +537,22 @@ output$title_time <- renderText({
 
 })
 
+```
+
+```{r}
+#| context: server
+
 # value time
 output$value_time <- renderText({
-  
-  paste0(Year_number_outbreaks()[Year_number_outbreaks()$Year==input$year_to_plot, "outbreaks"])  
-  
+
+  number_outbreaks_to_render <- paste0(
+    Year_number_outbreaks() |>
+      filter(Year == input$year_to_plot) |>
+      pull(outbreaks)
+  )
+
+  number_outbreaks_to_render
+
 })
 
 # Final text time
@@ -738,3 +752,5 @@ output$data_table <- renderDT({
 )
 
 ```
+
+
